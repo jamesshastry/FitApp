@@ -49,7 +49,21 @@ class OpenAIService {
         repeat(5) {
             val prompt = createCoachPrompt(5000)
             val personality = generateRandomSystemPrompt()
-            testResults.add("Test ${it + 1}: Prompt=${prompt.take(30)}..., Personality=${personality.take(30)}...")
+            testResults.add("Test ${it + 1}: Prompt=${prompt.take(50)}..., Personality=${personality.take(50)}...")
+        }
+        return testResults.joinToString("\n")
+    }
+    
+    // Test function to make actual API calls and compare responses
+    suspend fun testAPIRandomness(): String {
+        val testResults = mutableListOf<String>()
+        repeat(3) {
+            try {
+                val response = getCoachFeedback(5000)
+                testResults.add("API Test ${it + 1}: ${response.take(100)}...")
+            } catch (e: Exception) {
+                testResults.add("API Test ${it + 1}: ERROR - ${e.message}")
+            }
         }
         return testResults.joinToString("\n")
     }
@@ -57,10 +71,16 @@ class OpenAIService {
     suspend fun getCoachFeedback(steps: Int): String {
         return withContext(Dispatchers.IO) {
             try {
+                val timestamp = System.currentTimeMillis()
+                val randomSeed = (1..10000).random()
                 val prompt = createCoachPrompt(steps)
                 val systemPrompt = generateRandomSystemPrompt()
                 
-                Log.d("OpenAI", "Steps: $steps, Prompt: $prompt")
+                Log.d("OpenAI", "=== NEW REQUEST ===")
+                Log.d("OpenAI", "Timestamp: $timestamp")
+                Log.d("OpenAI", "Random Seed: $randomSeed")
+                Log.d("OpenAI", "Steps: $steps")
+                Log.d("OpenAI", "Prompt: $prompt")
                 Log.d("OpenAI", "System Prompt: $systemPrompt")
                 
                 val request = OpenAIRequest(
@@ -109,7 +129,9 @@ class OpenAIService {
     }
     
     private fun createCoachPrompt(steps: Int): String {
-        return "I did $steps steps today. What feedback do you have?"
+        val timestamp = System.currentTimeMillis()
+        val randomId = (1..10000).random()
+        return "I did $steps steps today. What feedback do you have? (Request ID: $randomId, Time: $timestamp)"
     }
     
     private fun generateRandomSystemPrompt(): String {

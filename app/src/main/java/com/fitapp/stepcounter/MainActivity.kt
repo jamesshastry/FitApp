@@ -119,6 +119,11 @@ class MainActivity : AppCompatActivity() {
         binding.testOpenAIButton.setOnClickListener {
             testOpenAI()
         }
+        
+        // Test API Randomness button
+        binding.testAPIRandomButton.setOnClickListener {
+            testAPIRandomness()
+        }
     }
     
     private fun showDebugInfo() {
@@ -360,6 +365,25 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 binding.coachFeedbackText.text = "❌ OpenAI Test FAILED!\n\nError: ${e.message}\n\nStack trace:\n${e.stackTraceToString().take(500)}"
                 Toast.makeText(this@MainActivity, "OpenAI test failed - see details above", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    private fun testAPIRandomness() {
+        lifecycleScope.launch {
+            try {
+                binding.coachFeedbackText.text = "Testing API Randomness...\nMaking 3 API calls..."
+                
+                val results = withContext(Dispatchers.IO) {
+                    openAIService.testAPIRandomness()
+                }
+                
+                binding.coachFeedbackText.text = "API Randomness Test Results:\n\n$results"
+                Toast.makeText(this@MainActivity, "API randomness test completed", Toast.LENGTH_SHORT).show()
+                
+            } catch (e: Exception) {
+                binding.coachFeedbackText.text = "❌ API Randomness Test FAILED!\n\nError: ${e.message}"
+                Toast.makeText(this@MainActivity, "API randomness test failed", Toast.LENGTH_LONG).show()
             }
         }
     }
