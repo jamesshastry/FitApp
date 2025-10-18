@@ -114,6 +114,11 @@ class MainActivity : AppCompatActivity() {
         binding.debugButton.setOnClickListener {
             testRandomness()
         }
+        
+        // Test OpenAI API button
+        binding.testOpenAIButton.setOnClickListener {
+            testOpenAI()
+        }
     }
     
     private fun showDebugInfo() {
@@ -326,5 +331,21 @@ class MainActivity : AppCompatActivity() {
         val testResults = openAIService.testRandomness()
         binding.coachFeedbackText.text = "Randomness Test Results:\n$testResults"
         Toast.makeText(this, "Check the feedback text for randomness test results", Toast.LENGTH_LONG).show()
+    }
+    
+    private fun testOpenAI() {
+        lifecycleScope.launch {
+            try {
+                binding.coachFeedbackText.text = "Testing OpenAI API..."
+                val result = withContext(Dispatchers.IO) {
+                    openAIService.getCoachFeedback(5000)
+                }
+                binding.coachFeedbackText.text = "OpenAI Test Result:\n$result"
+                Toast.makeText(this@MainActivity, "OpenAI test completed - check logs for details", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                binding.coachFeedbackText.text = "OpenAI Test Failed:\n${e.message}"
+                Toast.makeText(this@MainActivity, "OpenAI test failed - check logs", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }

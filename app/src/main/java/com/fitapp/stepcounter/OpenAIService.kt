@@ -96,9 +96,13 @@ class OpenAIService {
                     result
                 } else {
                     Log.e("OpenAI", "API Error: ${response.code} - ${response.message}")
+                    Log.e("OpenAI", "Response body: $responseBody")
                     "Keep up the great work! Every step counts towards a healthier you! 💪"
                 }
             } catch (e: Exception) {
+                Log.e("OpenAI", "Exception occurred: ${e.message}", e)
+                Log.e("OpenAI", "API Key present: ${BuildConfig.OPENAI_API_KEY.isNotEmpty()}")
+                Log.e("OpenAI", "API Key starts with: ${BuildConfig.OPENAI_API_KEY.take(10)}...")
                 "You're doing amazing! Keep stepping towards your goals! 🚶‍♂️✨"
             }
         }
