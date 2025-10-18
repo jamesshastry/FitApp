@@ -337,14 +337,29 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 binding.coachFeedbackText.text = "Testing OpenAI API..."
+                
+                // Check API key first
+                val apiKey = BuildConfig.OPENAI_API_KEY
+                val apiKeyStatus = if (apiKey.isEmpty()) {
+                    "❌ API KEY MISSING"
+                } else if (apiKey == "YOUR_OPENAI_API_KEY_HERE") {
+                    "❌ API KEY NOT SET (still placeholder)"
+                } else {
+                    "✅ API KEY PRESENT (${apiKey.take(10)}...)"
+                }
+                
+                binding.coachFeedbackText.text = "API Key Status:\n$apiKeyStatus\n\nTesting API call..."
+                
                 val result = withContext(Dispatchers.IO) {
                     openAIService.getCoachFeedback(5000)
                 }
-                binding.coachFeedbackText.text = "OpenAI Test Result:\n$result"
-                Toast.makeText(this@MainActivity, "OpenAI test completed - check logs for details", Toast.LENGTH_LONG).show()
+                
+                binding.coachFeedbackText.text = "✅ OpenAI Test SUCCESS!\n\nResult:\n$result"
+                Toast.makeText(this@MainActivity, "OpenAI test successful!", Toast.LENGTH_SHORT).show()
+                
             } catch (e: Exception) {
-                binding.coachFeedbackText.text = "OpenAI Test Failed:\n${e.message}"
-                Toast.makeText(this@MainActivity, "OpenAI test failed - check logs", Toast.LENGTH_LONG).show()
+                binding.coachFeedbackText.text = "❌ OpenAI Test FAILED!\n\nError: ${e.message}\n\nStack trace:\n${e.stackTraceToString().take(500)}"
+                Toast.makeText(this@MainActivity, "OpenAI test failed - see details above", Toast.LENGTH_LONG).show()
             }
         }
     }
