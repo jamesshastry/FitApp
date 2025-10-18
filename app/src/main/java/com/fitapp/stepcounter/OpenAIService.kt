@@ -14,7 +14,7 @@ data class OpenAIRequest(
     val model: String = "gpt-3.5-turbo",
     val messages: List<Message>,
     val max_tokens: Int = 150,
-    val temperature: Double = 0.7
+    val temperature: Double = 1.3  // Increased for more creativity
 )
 
 data class Message(
@@ -47,7 +47,7 @@ class OpenAIService {
                     messages = listOf(
                         Message(
                             role = "system",
-                            content = "You are an enthusiastic fitness coach. Provide motivational feedback based on step count. Keep responses under 100 words, encouraging and positive."
+                            content = generateRandomSystemPrompt()
                         ),
                         Message(
                             role = "user",
@@ -82,12 +82,59 @@ class OpenAIService {
     }
     
     private fun createCoachPrompt(steps: Int): String {
-        return when {
-            steps >= 10000 -> "The user has taken $steps steps today. They've reached the recommended daily goal!"
-            steps >= 8000 -> "The user has taken $steps steps today. They're very close to their daily goal!"
-            steps >= 5000 -> "The user has taken $steps steps today. They're making good progress!"
-            steps >= 2000 -> "The user has taken $steps steps today. They're getting started on their fitness journey!"
-            else -> "The user has taken $steps steps today. They're just beginning their day!"
+        val randomPrompts = when {
+            steps >= 10000 -> listOf(
+                "I've crushed $steps steps today! I'm a walking machine!",
+                "Wow! $steps steps! I'm basically a superhero now!",
+                "Incredible! $steps steps today! I'm unstoppable!",
+                "Amazing! $steps steps! I've conquered the day!",
+                "Fantastic! $steps steps! I'm a fitness legend!"
+            )
+            steps >= 8000 -> listOf(
+                "I'm at $steps steps! So close to greatness!",
+                "Awesome! $steps steps! I'm almost there!",
+                "Great progress! $steps steps! Just a bit more!",
+                "Excellent! $steps steps! I'm on fire!",
+                "Outstanding! $steps steps! Almost at the finish line!"
+            )
+            steps >= 5000 -> listOf(
+                "I've got $steps steps! I'm building momentum!",
+                "Nice work! $steps steps! I'm getting stronger!",
+                "Good progress! $steps steps! I'm in the zone!",
+                "Solid effort! $steps steps! I'm moving forward!",
+                "Great job! $steps steps! I'm on the right track!"
+            )
+            steps >= 2000 -> listOf(
+                "I'm at $steps steps! Every journey starts with a single step!",
+                "Good start! $steps steps! I'm warming up!",
+                "Nice beginning! $steps steps! I'm getting started!",
+                "Great foundation! $steps steps! I'm building up!",
+                "Excellent start! $steps steps! I'm on my way!"
+            )
+            else -> listOf(
+                "I'm at $steps steps! Time to get moving!",
+                "Starting with $steps steps! Let's build momentum!",
+                "Early in the day with $steps steps! Ready to conquer!",
+                "Beginning with $steps steps! Time to step up!",
+                "Fresh start with $steps steps! Let's make it count!"
+            )
         }
+        
+        return randomPrompts.random()
+    }
+    
+    private fun generateRandomSystemPrompt(): String {
+        val personalities = listOf(
+            "You are an enthusiastic fitness coach with boundless energy. Use creative metaphors, motivational quotes, and exciting language. Keep responses under 100 words.",
+            "You are a wise, zen-like fitness mentor who speaks in inspiring, philosophical ways. Use nature metaphors and calming encouragement. Keep responses under 100 words.",
+            "You are a fun, playful fitness buddy who uses humor and excitement. Be encouraging with a touch of comedy. Keep responses under 100 words.",
+            "You are a determined, warrior-like fitness coach who speaks with passion and intensity. Use powerful, motivating language. Keep responses under 100 words.",
+            "You are a supportive, caring fitness friend who speaks with warmth and understanding. Be encouraging and empathetic. Keep responses under 100 words.",
+            "You are a creative, artistic fitness coach who uses vivid imagery and poetic language. Paint pictures with words. Keep responses under 100 words.",
+            "You are a scientific, data-driven fitness expert who speaks with precision and knowledge. Use facts and logic to motivate. Keep responses under 100 words.",
+            "You are a adventurous, explorer-like fitness guide who speaks about journeys and discoveries. Use travel and adventure metaphors. Keep responses under 100 words."
+        )
+        
+        return personalities.random()
     }
 }
