@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityMainBinding
     private var googleSignInAccount: GoogleSignInAccount? = null
+    private val openAIService = OpenAIService()
     
     // Permission launcher
     private val permissionLauncher = registerForActivityResult(
@@ -91,6 +92,30 @@ class MainActivity : AppCompatActivity() {
                 checkPermissionsAndSignIn()
             }
         }
+        
+        // Add debug info
+        binding.lastUpdatedText.setOnClickListener {
+            showDebugInfo()
+        }
+    }
+    
+    private fun showDebugInfo() {
+        val account = googleSignInAccount
+        val debugInfo = buildString {
+            appendLine("Debug Information:")
+            appendLine("Signed in: ${account != null}")
+            if (account != null) {
+                appendLine("Email: ${account.email}")
+                appendLine("Account: ${account.account?.name}")
+                
+                val fitnessOptions = FitnessOptions.builder()
+                    .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                    .build()
+                appendLine("Has permissions: ${GoogleSignIn.hasPermissions(account, fitnessOptions)}")
+            }
+        }
+        
+        Toast.makeText(this, debugInfo, Toast.LENGTH_LONG).show()
     }
     
     private fun checkPermissionsAndSignIn() {
@@ -138,6 +163,7 @@ class MainActivity : AppCompatActivity() {
     
     private fun loadStepCount() {
         binding.stepCountText.text = "Loading..."
+        binding.coachFeedbackText.text = "Loading motivational feedback..."
         
         lifecycleScope.launch {
             try {
@@ -148,9 +174,26 @@ class MainActivity : AppCompatActivity() {
                 binding.stepCountText.text = stepCount.toString()
                 binding.lastUpdatedText.text = "Last updated: ${getCurrentTime()}"
                 
+                // Get AI coach feedback
+                loadCoachFeedback(stepCount)
+                
             } catch (e: Exception) {
                 binding.stepCountText.text = "Error"
+                binding.coachFeedbackText.text = "Keep moving! Every step counts! 💪"
                 Toast.makeText(this@MainActivity, "Failed to load step count: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    private fun loadCoachFeedback(steps: Int) {
+        lifecycleScope.launch {
+            try {
+                val feedback = withContext(Dispatchers.IO) {
+                    openAIService.getCoachFeedback(steps)
+                }
+                binding.coachFeedbackText.text = feedback
+            } catch (e: Exception) {
+                binding.coachFeedbackText.text = "You're doing great! Keep stepping towards your goals! 🚶‍♂️✨"
             }
         }
     }
@@ -171,17 +214,29 @@ class MainActivity : AppCompatActivity() {
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
             
-            val account = googleSignInAccount ?: throw Exception("Not signed in")
+            val account = googleSignInAccount ?: throw Exception("Not signed in to Google")
             
             try {
+                // Check if Google Fit is available
+                val fitnessOptions = FitnessOptions.builder()
+                    .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                    .build()
+                
+                if (!GoogleSignIn.hasPermissions(account, fitnessOptions)) {
+                    throw Exception("Missing Google Fit permissions")
+                }
+                
                 val result = Fitness.getHistoryClient(this@MainActivity, account)
                     .readData(readRequest)
                     .await()
                 
                 var totalSteps = 0
+                var hasData = false
+                
                 for (bucket in result.buckets) {
                     for (dataSet in bucket.dataSets) {
                         for (dataPoint in dataSet.dataPoints) {
+                            hasData = true
                             for (field in dataPoint.dataType.fields) {
                                 val value = dataPoint.getValue(field)
                                 totalSteps += value.asInt()
@@ -190,9 +245,22 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 
+                if (!hasData) {
+                    throw Exception("No step data found for today. Make sure Google Fit is tracking your steps.")
+                }
+                
                 totalSteps
             } catch (e: Exception) {
-                throw Exception("Failed to read step data: ${e.message}")
+                when {
+                    e.message?.contains("Not signed in") == true -> 
+                        throw Exception("Please sign in with Google first")
+                    e.message?.contains("Missing Google Fit permissions") == true -> 
+                        throw Exception("Missing Google Fit permissions. Please sign in again.")
+                    e.message?.contains("No step data found") == true -> 
+                        throw Exception("No step data found for today. Make sure Google Fit is tracking your steps.")
+                    else -> 
+                        throw Exception("Failed to read step data: ${e.message}")
+                }
             }
         }
     }
