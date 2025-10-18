@@ -22,8 +22,25 @@ import com.google.android.gms.fitness.result.DataReadResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
+import com.google.android.gms.tasks.Task
+
+// Extension function to convert Task to suspend function
+suspend fun <T> Task<T>.await(): T {
+    return suspendCancellableCoroutine { cont ->
+        addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                cont.resume(task.result)
+            } else {
+                cont.resumeWithException(task.exception ?: Exception("Unknown error"))
+            }
+        }
+    }
+}
 
 class MainActivity : AppCompatActivity() {
     
@@ -103,13 +120,20 @@ class MainActivity : AppCompatActivity() {
         
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .addScope(Scope(fitnessOptions.getScope(DataType.TYPE_STEP_COUNT_DELTA)))
-            .addScope(Scope(fitnessOptions.getScope(DataType.TYPE_STEP_COUNT_CUMULATIVE)))
+            .requestScopes(Scope("https://www.googleapis.com/auth/fitness.activity.read"))
             .build()
         
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
-        val signInIntent = googleSignInClient.signInIntent
-        googleSignInLauncher.launch(signInIntent)
+        
+        // Check if user is already signed in
+        val account = GoogleSignIn.getLastSignedInAccount(this)
+        if (account != null && GoogleSignIn.hasPermissions(account, fitnessOptions)) {
+            googleSignInAccount = account
+            loadStepCount()
+        } else {
+            val signInIntent = googleSignInClient.signInIntent
+            googleSignInLauncher.launch(signInIntent)
+        }
     }
     
     private fun loadStepCount() {
@@ -149,23 +173,27 @@ class MainActivity : AppCompatActivity() {
             
             val account = googleSignInAccount ?: throw Exception("Not signed in")
             
-            val dataReadResult = Fitness.getHistoryClient(this@MainActivity, account)
-                .readData(readRequest)
-                .await()
-            
-            var totalSteps = 0
-            for (bucket in dataReadResult.buckets) {
-                for (dataSet in bucket.dataSets) {
-                    for (dataPoint in dataSet.dataPoints) {
-                        for (field in dataPoint.dataType.fields) {
-                            val value = dataPoint.getValue(field)
-                            totalSteps += value.asInt()
+            try {
+                val result = Fitness.getHistoryClient(this@MainActivity, account)
+                    .readData(readRequest)
+                    .await()
+                
+                var totalSteps = 0
+                for (bucket in result.buckets) {
+                    for (dataSet in bucket.dataSets) {
+                        for (dataPoint in dataSet.dataPoints) {
+                            for (field in dataPoint.dataType.fields) {
+                                val value = dataPoint.getValue(field)
+                                totalSteps += value.asInt()
+                            }
                         }
                     }
                 }
+                
+                totalSteps
+            } catch (e: Exception) {
+                throw Exception("Failed to read step data: ${e.message}")
             }
-            
-            totalSteps
         }
     }
     
