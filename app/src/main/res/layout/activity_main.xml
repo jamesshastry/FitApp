@@ -122,6 +122,14 @@
                     android:scaleType="centerInside"
                     android:padding="8dp" />
 
+                <Button
+                    android:id="@+id/debugButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Test Random"
+                    android:textSize="10sp"
+                    android:layout_marginStart="8dp" />
+
             </LinearLayout>
 
             <TextView

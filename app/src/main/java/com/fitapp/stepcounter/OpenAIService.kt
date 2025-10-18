@@ -40,6 +40,17 @@ class OpenAIService {
     
     private val gson = Gson()
     
+    // Test function to verify randomness
+    fun testRandomness(): String {
+        val testResults = mutableListOf<String>()
+        repeat(5) {
+            val prompt = createCoachPrompt(5000)
+            val personality = generateRandomSystemPrompt()
+            testResults.add("Test ${it + 1}: Prompt=${prompt.take(30)}..., Personality=${personality.take(30)}...")
+        }
+        return testResults.joinToString("\n")
+    }
+    
     suspend fun getCoachFeedback(steps: Int): String {
         return withContext(Dispatchers.IO) {
             try {

@@ -109,6 +109,11 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "No feedback available to play", Toast.LENGTH_SHORT).show()
             }
         }
+        
+        // Debug button to test randomness
+        binding.debugButton.setOnClickListener {
+            testRandomness()
+        }
     }
     
     private fun showDebugInfo() {
@@ -315,5 +320,11 @@ class MainActivity : AppCompatActivity() {
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         return String.format("%02d:%02d", hour, minute)
+    }
+    
+    private fun testRandomness() {
+        val testResults = openAIService.testRandomness()
+        binding.coachFeedbackText.text = "Randomness Test Results:\n$testResults"
+        Toast.makeText(this, "Check the feedback text for randomness test results", Toast.LENGTH_LONG).show()
     }
 }
