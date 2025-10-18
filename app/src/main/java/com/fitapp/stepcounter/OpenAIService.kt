@@ -15,7 +15,10 @@ data class OpenAIRequest(
     val model: String = "gpt-3.5-turbo",
     val messages: List<Message>,
     val max_tokens: Int = 150,
-    val temperature: Double = 1.3  // Increased for more creativity
+    val temperature: Double = 1.8,  // Increased even more for maximum creativity
+    val top_p: Double = 0.9,       // Add top_p for more randomness
+    val frequency_penalty: Double = 0.5,  // Add frequency penalty to avoid repetition
+    val presence_penalty: Double = 0.3    // Add presence penalty for more variety
 )
 
 data class Message(
@@ -102,42 +105,58 @@ class OpenAIService {
     }
     
     private fun createCoachPrompt(steps: Int): String {
-        val timestamp = System.currentTimeMillis()
+        val randomId = (1..1000).random()
+        
         val randomPrompts = when {
             steps >= 10000 -> listOf(
-                "I've crushed $steps steps today! I'm a walking machine! (Time: $timestamp)",
-                "Wow! $steps steps! I'm basically a superhero now! (Time: $timestamp)",
-                "Incredible! $steps steps today! I'm unstoppable! (Time: $timestamp)",
-                "Amazing! $steps steps! I've conquered the day! (Time: $timestamp)",
-                "Fantastic! $steps steps! I'm a fitness legend! (Time: $timestamp)"
+                "I've absolutely DOMINATED $steps steps today! I'm a walking TITAN! (ID: $randomId)",
+                "HOLY MOLY! $steps steps! I'm basically a FITNESS SUPERHERO! (ID: $randomId)",
+                "INCREDIBLE! $steps steps today! I'm UNSTOPPABLE! (ID: $randomId)",
+                "AMAZING! $steps steps! I've CONQUERED the day! (ID: $randomId)",
+                "FANTASTIC! $steps steps! I'm a FITNESS LEGEND! (ID: $randomId)",
+                "BOOM! $steps steps! I'm a STEPPING MACHINE! (ID: $randomId)",
+                "WOWZA! $steps steps! I'm a FITNESS WARRIOR! (ID: $randomId)",
+                "EPIC! $steps steps! I'm a MOVEMENT MASTER! (ID: $randomId)"
             )
             steps >= 8000 -> listOf(
-                "I'm at $steps steps! So close to greatness! (Time: $timestamp)",
-                "Awesome! $steps steps! I'm almost there! (Time: $timestamp)",
-                "Great progress! $steps steps! Just a bit more! (Time: $timestamp)",
-                "Excellent! $steps steps! I'm on fire! (Time: $timestamp)",
-                "Outstanding! $steps steps! Almost at the finish line! (Time: $timestamp)"
+                "I'm at $steps steps! SO CLOSE to greatness! (ID: $randomId)",
+                "AWESOME! $steps steps! I'm ALMOST there! (ID: $randomId)",
+                "GREAT progress! $steps steps! Just a BIT more! (ID: $randomId)",
+                "EXCELLENT! $steps steps! I'm ON FIRE! (ID: $randomId)",
+                "OUTSTANDING! $steps steps! Almost at the FINISH LINE! (ID: $randomId)",
+                "FANTASTIC! $steps steps! I'm CRUSHING it! (ID: $randomId)",
+                "AMAZING! $steps steps! I'm UNSTOPPABLE! (ID: $randomId)",
+                "INCREDIBLE! $steps steps! I'm a CHAMPION! (ID: $randomId)"
             )
             steps >= 5000 -> listOf(
-                "I've got $steps steps! I'm building momentum! (Time: $timestamp)",
-                "Nice work! $steps steps! I'm getting stronger! (Time: $timestamp)",
-                "Good progress! $steps steps! I'm in the zone! (Time: $timestamp)",
-                "Solid effort! $steps steps! I'm moving forward! (Time: $timestamp)",
-                "Great job! $steps steps! I'm on the right track! (Time: $timestamp)"
+                "I've got $steps steps! I'm BUILDING momentum! (ID: $randomId)",
+                "NICE work! $steps steps! I'm getting STRONGER! (ID: $randomId)",
+                "GOOD progress! $steps steps! I'm in the ZONE! (ID: $randomId)",
+                "SOLID effort! $steps steps! I'm moving FORWARD! (ID: $randomId)",
+                "GREAT job! $steps steps! I'm on the RIGHT track! (ID: $randomId)",
+                "AWESOME! $steps steps! I'm BUILDING power! (ID: $randomId)",
+                "FANTASTIC! $steps steps! I'm GAINING strength! (ID: $randomId)",
+                "EXCELLENT! $steps steps! I'm RISING up! (ID: $randomId)"
             )
             steps >= 2000 -> listOf(
-                "I'm at $steps steps! Every journey starts with a single step! (Time: $timestamp)",
-                "Good start! $steps steps! I'm warming up! (Time: $timestamp)",
-                "Nice beginning! $steps steps! I'm getting started! (Time: $timestamp)",
-                "Great foundation! $steps steps! I'm building up! (Time: $timestamp)",
-                "Excellent start! $steps steps! I'm on my way! (Time: $timestamp)"
+                "I'm at $steps steps! Every journey starts with a SINGLE step! (ID: $randomId)",
+                "GOOD start! $steps steps! I'm WARMING up! (ID: $randomId)",
+                "NICE beginning! $steps steps! I'm getting STARTED! (ID: $randomId)",
+                "GREAT foundation! $steps steps! I'm BUILDING up! (ID: $randomId)",
+                "EXCELLENT start! $steps steps! I'm on my WAY! (ID: $randomId)",
+                "AWESOME! $steps steps! I'm TAKING off! (ID: $randomId)",
+                "FANTASTIC! $steps steps! I'm LAUNCHING! (ID: $randomId)",
+                "INCREDIBLE! $steps steps! I'm IGNITING! (ID: $randomId)"
             )
             else -> listOf(
-                "I'm at $steps steps! Time to get moving! (Time: $timestamp)",
-                "Starting with $steps steps! Let's build momentum! (Time: $timestamp)",
-                "Early in the day with $steps steps! Ready to conquer! (Time: $timestamp)",
-                "Beginning with $steps steps! Time to step up! (Time: $timestamp)",
-                "Fresh start with $steps steps! Let's make it count! (Time: $timestamp)"
+                "I'm at $steps steps! Time to get MOVING! (ID: $randomId)",
+                "STARTING with $steps steps! Let's BUILD momentum! (ID: $randomId)",
+                "EARLY in the day with $steps steps! Ready to CONQUER! (ID: $randomId)",
+                "BEGINNING with $steps steps! Time to STEP up! (ID: $randomId)",
+                "FRESH start with $steps steps! Let's make it COUNT! (ID: $randomId)",
+                "NEW day with $steps steps! Let's CRUSH it! (ID: $randomId)",
+                "FIRST steps with $steps steps! Let's DOMINATE! (ID: $randomId)",
+                "LAUNCHING with $steps steps! Let's CONQUER! (ID: $randomId)"
             )
         }
         
@@ -148,14 +167,16 @@ class OpenAIService {
     
     private fun generateRandomSystemPrompt(): String {
         val personalities = listOf(
-            "You are an enthusiastic fitness coach with boundless energy. Use creative metaphors, motivational quotes, and exciting language. Keep responses under 100 words.",
-            "You are a wise, zen-like fitness mentor who speaks in inspiring, philosophical ways. Use nature metaphors and calming encouragement. Keep responses under 100 words.",
-            "You are a fun, playful fitness buddy who uses humor and excitement. Be encouraging with a touch of comedy. Keep responses under 100 words.",
-            "You are a determined, warrior-like fitness coach who speaks with passion and intensity. Use powerful, motivating language. Keep responses under 100 words.",
-            "You are a supportive, caring fitness friend who speaks with warmth and understanding. Be encouraging and empathetic. Keep responses under 100 words.",
-            "You are a creative, artistic fitness coach who uses vivid imagery and poetic language. Paint pictures with words. Keep responses under 100 words.",
-            "You are a scientific, data-driven fitness expert who speaks with precision and knowledge. Use facts and logic to motivate. Keep responses under 100 words.",
-            "You are a adventurous, explorer-like fitness guide who speaks about journeys and discoveries. Use travel and adventure metaphors. Keep responses under 100 words."
+            "You are an EXTREMELY enthusiastic fitness coach with BOUNDLESS energy! Use CAPS LOCK, exclamation marks, and SUPER exciting language! Be OVER THE TOP! Keep responses under 100 words.",
+            "You are a CALM, zen-like fitness mentor who speaks in WHISPERING, philosophical ways. Use NATURE metaphors and SERENE encouragement. Be VERY PEACEFUL. Keep responses under 100 words.",
+            "You are a SILLY, playful fitness buddy who uses RIDICULOUS humor and WACKY excitement. Be ABSURDLY funny and goofy! Use SILLY jokes! Keep responses under 100 words.",
+            "You are a FIERCE, warrior-like fitness coach who speaks with INTENSE passion and POWER! Use BATTLE metaphors and STRONG language! Be INTIMIDATING! Keep responses under 100 words.",
+            "You are a WARM, caring fitness friend who speaks with GENTLE warmth and UNDERSTANDING. Be SUPER supportive and EMPATHETIC. Use HUGS and LOVE! Keep responses under 100 words.",
+            "You are a CREATIVE, artistic fitness coach who uses VIVID imagery and POETIC language. Paint BEAUTIFUL pictures with words! Be VERY ARTISTIC! Keep responses under 100 words.",
+            "You are a PRECISE, scientific fitness expert who speaks with DATA and FACTS. Use NUMBERS, STATISTICS, and LOGIC to motivate. Be VERY ANALYTICAL! Keep responses under 100 words.",
+            "You are an ADVENTUROUS, explorer-like fitness guide who speaks about JOURNEYS and DISCOVERIES. Use TRAVEL metaphors and ADVENTURE language! Be VERY EXPLORATORY! Keep responses under 100 words.",
+            "You are a MYSTERIOUS, mystical fitness guru who speaks in RIDDLES and SECRETS. Use MAGICAL metaphors and ENIGMATIC language! Be VERY MYSTICAL! Keep responses under 100 words.",
+            "You are a REBELLIOUS, punk fitness coach who speaks with ATTITUDE and EDGE. Use REBEL language and PUNK metaphors! Be VERY DEFIANT! Keep responses under 100 words."
         )
         
         val selectedPersonality = personalities.random()
