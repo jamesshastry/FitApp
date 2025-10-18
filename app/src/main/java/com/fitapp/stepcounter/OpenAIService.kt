@@ -105,78 +105,19 @@ class OpenAIService {
     }
     
     private fun createCoachPrompt(steps: Int): String {
-        val randomId = (1..1000).random()
-        
-        val randomPrompts = when {
-            steps >= 10000 -> listOf(
-                "I've absolutely DOMINATED $steps steps today! I'm a walking TITAN! (ID: $randomId)",
-                "HOLY MOLY! $steps steps! I'm basically a FITNESS SUPERHERO! (ID: $randomId)",
-                "INCREDIBLE! $steps steps today! I'm UNSTOPPABLE! (ID: $randomId)",
-                "AMAZING! $steps steps! I've CONQUERED the day! (ID: $randomId)",
-                "FANTASTIC! $steps steps! I'm a FITNESS LEGEND! (ID: $randomId)",
-                "BOOM! $steps steps! I'm a STEPPING MACHINE! (ID: $randomId)",
-                "WOWZA! $steps steps! I'm a FITNESS WARRIOR! (ID: $randomId)",
-                "EPIC! $steps steps! I'm a MOVEMENT MASTER! (ID: $randomId)"
-            )
-            steps >= 8000 -> listOf(
-                "I'm at $steps steps! SO CLOSE to greatness! (ID: $randomId)",
-                "AWESOME! $steps steps! I'm ALMOST there! (ID: $randomId)",
-                "GREAT progress! $steps steps! Just a BIT more! (ID: $randomId)",
-                "EXCELLENT! $steps steps! I'm ON FIRE! (ID: $randomId)",
-                "OUTSTANDING! $steps steps! Almost at the FINISH LINE! (ID: $randomId)",
-                "FANTASTIC! $steps steps! I'm CRUSHING it! (ID: $randomId)",
-                "AMAZING! $steps steps! I'm UNSTOPPABLE! (ID: $randomId)",
-                "INCREDIBLE! $steps steps! I'm a CHAMPION! (ID: $randomId)"
-            )
-            steps >= 5000 -> listOf(
-                "I've got $steps steps! I'm BUILDING momentum! (ID: $randomId)",
-                "NICE work! $steps steps! I'm getting STRONGER! (ID: $randomId)",
-                "GOOD progress! $steps steps! I'm in the ZONE! (ID: $randomId)",
-                "SOLID effort! $steps steps! I'm moving FORWARD! (ID: $randomId)",
-                "GREAT job! $steps steps! I'm on the RIGHT track! (ID: $randomId)",
-                "AWESOME! $steps steps! I'm BUILDING power! (ID: $randomId)",
-                "FANTASTIC! $steps steps! I'm GAINING strength! (ID: $randomId)",
-                "EXCELLENT! $steps steps! I'm RISING up! (ID: $randomId)"
-            )
-            steps >= 2000 -> listOf(
-                "I'm at $steps steps! Every journey starts with a SINGLE step! (ID: $randomId)",
-                "GOOD start! $steps steps! I'm WARMING up! (ID: $randomId)",
-                "NICE beginning! $steps steps! I'm getting STARTED! (ID: $randomId)",
-                "GREAT foundation! $steps steps! I'm BUILDING up! (ID: $randomId)",
-                "EXCELLENT start! $steps steps! I'm on my WAY! (ID: $randomId)",
-                "AWESOME! $steps steps! I'm TAKING off! (ID: $randomId)",
-                "FANTASTIC! $steps steps! I'm LAUNCHING! (ID: $randomId)",
-                "INCREDIBLE! $steps steps! I'm IGNITING! (ID: $randomId)"
-            )
-            else -> listOf(
-                "I'm at $steps steps! Time to get MOVING! (ID: $randomId)",
-                "STARTING with $steps steps! Let's BUILD momentum! (ID: $randomId)",
-                "EARLY in the day with $steps steps! Ready to CONQUER! (ID: $randomId)",
-                "BEGINNING with $steps steps! Time to STEP up! (ID: $randomId)",
-                "FRESH start with $steps steps! Let's make it COUNT! (ID: $randomId)",
-                "NEW day with $steps steps! Let's CRUSH it! (ID: $randomId)",
-                "FIRST steps with $steps steps! Let's DOMINATE! (ID: $randomId)",
-                "LAUNCHING with $steps steps! Let's CONQUER! (ID: $randomId)"
-            )
-        }
-        
-        val selectedPrompt = randomPrompts.random()
-        Log.d("OpenAI", "Selected prompt: $selectedPrompt")
-        return selectedPrompt
+        return "I did $steps steps today. What feedback do you have?"
     }
     
     private fun generateRandomSystemPrompt(): String {
         val personalities = listOf(
-            "You are an EXTREMELY enthusiastic fitness coach with BOUNDLESS energy! Use CAPS LOCK, exclamation marks, and SUPER exciting language! Be OVER THE TOP! Keep responses under 100 words.",
-            "You are a CALM, zen-like fitness mentor who speaks in WHISPERING, philosophical ways. Use NATURE metaphors and SERENE encouragement. Be VERY PEACEFUL. Keep responses under 100 words.",
-            "You are a SILLY, playful fitness buddy who uses RIDICULOUS humor and WACKY excitement. Be ABSURDLY funny and goofy! Use SILLY jokes! Keep responses under 100 words.",
-            "You are a FIERCE, warrior-like fitness coach who speaks with INTENSE passion and POWER! Use BATTLE metaphors and STRONG language! Be INTIMIDATING! Keep responses under 100 words.",
-            "You are a WARM, caring fitness friend who speaks with GENTLE warmth and UNDERSTANDING. Be SUPER supportive and EMPATHETIC. Use HUGS and LOVE! Keep responses under 100 words.",
-            "You are a CREATIVE, artistic fitness coach who uses VIVID imagery and POETIC language. Paint BEAUTIFUL pictures with words! Be VERY ARTISTIC! Keep responses under 100 words.",
-            "You are a PRECISE, scientific fitness expert who speaks with DATA and FACTS. Use NUMBERS, STATISTICS, and LOGIC to motivate. Be VERY ANALYTICAL! Keep responses under 100 words.",
-            "You are an ADVENTUROUS, explorer-like fitness guide who speaks about JOURNEYS and DISCOVERIES. Use TRAVEL metaphors and ADVENTURE language! Be VERY EXPLORATORY! Keep responses under 100 words.",
-            "You are a MYSTERIOUS, mystical fitness guru who speaks in RIDDLES and SECRETS. Use MAGICAL metaphors and ENIGMATIC language! Be VERY MYSTICAL! Keep responses under 100 words.",
-            "You are a REBELLIOUS, punk fitness coach who speaks with ATTITUDE and EDGE. Use REBEL language and PUNK metaphors! Be VERY DEFIANT! Keep responses under 100 words."
+            "You are an enthusiastic fitness coach. Give motivational feedback about step counts. Be encouraging and positive. Keep responses under 100 words.",
+            "You are a supportive fitness mentor. Provide encouraging feedback about daily step progress. Be warm and motivating. Keep responses under 100 words.",
+            "You are a fun fitness buddy. Give playful and encouraging feedback about step counts. Be lighthearted and supportive. Keep responses under 100 words.",
+            "You are a determined fitness coach. Provide strong motivational feedback about step progress. Be passionate and inspiring. Keep responses under 100 words.",
+            "You are a caring fitness friend. Give supportive feedback about step counts. Be empathetic and encouraging. Keep responses under 100 words.",
+            "You are a creative fitness coach. Provide imaginative feedback about step progress. Use creative metaphors and inspiring language. Keep responses under 100 words.",
+            "You are a knowledgeable fitness expert. Give informative feedback about step counts. Be encouraging with helpful insights. Keep responses under 100 words.",
+            "You are an adventurous fitness guide. Provide exciting feedback about step progress. Use journey and exploration metaphors. Keep responses under 100 words."
         )
         
         val selectedPersonality = personalities.random()
