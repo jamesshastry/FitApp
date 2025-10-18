@@ -1,5 +1,6 @@
 package com.fitapp.stepcounter
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
@@ -43,11 +44,16 @@ class OpenAIService {
         return withContext(Dispatchers.IO) {
             try {
                 val prompt = createCoachPrompt(steps)
+                val systemPrompt = generateRandomSystemPrompt()
+                
+                Log.d("OpenAI", "Steps: $steps, Prompt: $prompt")
+                Log.d("OpenAI", "System Prompt: $systemPrompt")
+                
                 val request = OpenAIRequest(
                     messages = listOf(
                         Message(
                             role = "system",
-                            content = generateRandomSystemPrompt()
+                            content = systemPrompt
                         ),
                         Message(
                             role = "user",
@@ -71,8 +77,11 @@ class OpenAIService {
                 
                 if (response.isSuccessful && responseBody != null) {
                     val openAIResponse = gson.fromJson(responseBody, OpenAIResponse::class.java)
-                    openAIResponse.choices.firstOrNull()?.message?.content ?: "Great job on your steps today! Keep moving!"
+                    val result = openAIResponse.choices.firstOrNull()?.message?.content ?: "Great job on your steps today! Keep moving!"
+                    Log.d("OpenAI", "API Response: $result")
+                    result
                 } else {
+                    Log.e("OpenAI", "API Error: ${response.code} - ${response.message}")
                     "Keep up the great work! Every step counts towards a healthier you! 💪"
                 }
             } catch (e: Exception) {
@@ -82,45 +91,48 @@ class OpenAIService {
     }
     
     private fun createCoachPrompt(steps: Int): String {
+        val timestamp = System.currentTimeMillis()
         val randomPrompts = when {
             steps >= 10000 -> listOf(
-                "I've crushed $steps steps today! I'm a walking machine!",
-                "Wow! $steps steps! I'm basically a superhero now!",
-                "Incredible! $steps steps today! I'm unstoppable!",
-                "Amazing! $steps steps! I've conquered the day!",
-                "Fantastic! $steps steps! I'm a fitness legend!"
+                "I've crushed $steps steps today! I'm a walking machine! (Time: $timestamp)",
+                "Wow! $steps steps! I'm basically a superhero now! (Time: $timestamp)",
+                "Incredible! $steps steps today! I'm unstoppable! (Time: $timestamp)",
+                "Amazing! $steps steps! I've conquered the day! (Time: $timestamp)",
+                "Fantastic! $steps steps! I'm a fitness legend! (Time: $timestamp)"
             )
             steps >= 8000 -> listOf(
-                "I'm at $steps steps! So close to greatness!",
-                "Awesome! $steps steps! I'm almost there!",
-                "Great progress! $steps steps! Just a bit more!",
-                "Excellent! $steps steps! I'm on fire!",
-                "Outstanding! $steps steps! Almost at the finish line!"
+                "I'm at $steps steps! So close to greatness! (Time: $timestamp)",
+                "Awesome! $steps steps! I'm almost there! (Time: $timestamp)",
+                "Great progress! $steps steps! Just a bit more! (Time: $timestamp)",
+                "Excellent! $steps steps! I'm on fire! (Time: $timestamp)",
+                "Outstanding! $steps steps! Almost at the finish line! (Time: $timestamp)"
             )
             steps >= 5000 -> listOf(
-                "I've got $steps steps! I'm building momentum!",
-                "Nice work! $steps steps! I'm getting stronger!",
-                "Good progress! $steps steps! I'm in the zone!",
-                "Solid effort! $steps steps! I'm moving forward!",
-                "Great job! $steps steps! I'm on the right track!"
+                "I've got $steps steps! I'm building momentum! (Time: $timestamp)",
+                "Nice work! $steps steps! I'm getting stronger! (Time: $timestamp)",
+                "Good progress! $steps steps! I'm in the zone! (Time: $timestamp)",
+                "Solid effort! $steps steps! I'm moving forward! (Time: $timestamp)",
+                "Great job! $steps steps! I'm on the right track! (Time: $timestamp)"
             )
             steps >= 2000 -> listOf(
-                "I'm at $steps steps! Every journey starts with a single step!",
-                "Good start! $steps steps! I'm warming up!",
-                "Nice beginning! $steps steps! I'm getting started!",
-                "Great foundation! $steps steps! I'm building up!",
-                "Excellent start! $steps steps! I'm on my way!"
+                "I'm at $steps steps! Every journey starts with a single step! (Time: $timestamp)",
+                "Good start! $steps steps! I'm warming up! (Time: $timestamp)",
+                "Nice beginning! $steps steps! I'm getting started! (Time: $timestamp)",
+                "Great foundation! $steps steps! I'm building up! (Time: $timestamp)",
+                "Excellent start! $steps steps! I'm on my way! (Time: $timestamp)"
             )
             else -> listOf(
-                "I'm at $steps steps! Time to get moving!",
-                "Starting with $steps steps! Let's build momentum!",
-                "Early in the day with $steps steps! Ready to conquer!",
-                "Beginning with $steps steps! Time to step up!",
-                "Fresh start with $steps steps! Let's make it count!"
+                "I'm at $steps steps! Time to get moving! (Time: $timestamp)",
+                "Starting with $steps steps! Let's build momentum! (Time: $timestamp)",
+                "Early in the day with $steps steps! Ready to conquer! (Time: $timestamp)",
+                "Beginning with $steps steps! Time to step up! (Time: $timestamp)",
+                "Fresh start with $steps steps! Let's make it count! (Time: $timestamp)"
             )
         }
         
-        return randomPrompts.random()
+        val selectedPrompt = randomPrompts.random()
+        Log.d("OpenAI", "Selected prompt: $selectedPrompt")
+        return selectedPrompt
     }
     
     private fun generateRandomSystemPrompt(): String {
@@ -135,6 +147,8 @@ class OpenAIService {
             "You are a adventurous, explorer-like fitness guide who speaks about journeys and discoveries. Use travel and adventure metaphors. Keep responses under 100 words."
         )
         
-        return personalities.random()
+        val selectedPersonality = personalities.random()
+        Log.d("OpenAI", "Selected personality: $selectedPersonality")
+        return selectedPersonality
     }
 }
