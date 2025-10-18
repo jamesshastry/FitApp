@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var googleSignInAccount: GoogleSignInAccount? = null
     private val openAIService = OpenAIService()
+    private lateinit var elevenLabsService: ElevenLabsService
+    private var currentFeedbackText = ""
     
     // Permission launcher
     private val permissionLauncher = registerForActivityResult(
@@ -80,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        elevenLabsService = ElevenLabsService(this)
         setupUI()
         checkPermissionsAndSignIn()
     }
@@ -96,6 +99,15 @@ class MainActivity : AppCompatActivity() {
         // Add debug info
         binding.lastUpdatedText.setOnClickListener {
             showDebugInfo()
+        }
+        
+        // Voice feedback button
+        binding.playVoiceButton.setOnClickListener {
+            if (currentFeedbackText.isNotEmpty()) {
+                playVoiceFeedback()
+            } else {
+                Toast.makeText(this, "No feedback available to play", Toast.LENGTH_SHORT).show()
+            }
         }
     }
     
@@ -191,9 +203,37 @@ class MainActivity : AppCompatActivity() {
                 val feedback = withContext(Dispatchers.IO) {
                     openAIService.getCoachFeedback(steps)
                 }
+                currentFeedbackText = feedback
                 binding.coachFeedbackText.text = feedback
             } catch (e: Exception) {
-                binding.coachFeedbackText.text = "You're doing great! Keep stepping towards your goals! 🚶‍♂️✨"
+                val fallbackMessage = "You're doing great! Keep stepping towards your goals! 🚶‍♂️✨"
+                currentFeedbackText = fallbackMessage
+                binding.coachFeedbackText.text = fallbackMessage
+            }
+        }
+    }
+    
+    private fun playVoiceFeedback() {
+        lifecycleScope.launch {
+            try {
+                binding.playVoiceButton.isEnabled = false
+                binding.playVoiceButton.setImageResource(android.R.drawable.ic_media_pause)
+                
+                val success = withContext(Dispatchers.IO) {
+                    elevenLabsService.textToSpeech(currentFeedbackText)
+                }
+                
+                if (!success) {
+                    Toast.makeText(this@MainActivity, "Failed to generate voice feedback", Toast.LENGTH_SHORT).show()
+                }
+                
+                binding.playVoiceButton.isEnabled = true
+                binding.playVoiceButton.setImageResource(android.R.drawable.ic_media_play)
+                
+            } catch (e: Exception) {
+                binding.playVoiceButton.isEnabled = true
+                binding.playVoiceButton.setImageResource(android.R.drawable.ic_media_play)
+                Toast.makeText(this@MainActivity, "Error playing voice feedback", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -263,6 +303,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        elevenLabsService.cleanup()
     }
     
     private fun getCurrentTime(): String {

@@ -10,6 +10,10 @@
     
     <!-- Internet permission for OpenAI API -->
     <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Audio permissions for ElevenLabs voice -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
